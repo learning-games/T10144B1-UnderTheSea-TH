@@ -1277,11 +1277,20 @@ function placeQuestionFollowHead(){
 }
 
 
-
 /* ---------- ลากกล่องคำถามด้วยเมาส์ (ใช้ตอนปิดกล้อง) ---------- */
 function getMousePos(evt){
+  // รองรับทั้ง mouse และ touch
+  if (evt.touches && evt.touches.length) {
+    const t = evt.touches[0];
+    return { x: t.clientX, y: t.clientY };
+  }
+  if (evt.changedTouches && evt.changedTouches.length) {
+    const t = evt.changedTouches[0];
+    return { x: t.clientX, y: t.clientY };
+  }
   return { x: evt.clientX, y: evt.clientY };
 }
+
 
 function onQuestionMouseDown(e){
   // ถ้ามีกล้อง AR ทำงานอยู่ (มีหัว) จะไม่ให้ลาก เพื่อไม่ให้ตีกัน
@@ -1313,6 +1322,8 @@ function onQuestionMouseDown(e){
 
 function onQuestionMouseMove(e){
   if(!draggingQuestion) return;
+  e.preventDefault();  // ⬅ กันจอไม่ให้สไลด์เวลาใช้นิ้วลาก
+
   const pos = getMousePos(e);
 
   // ขยับ "ศูนย์กลางกล่อง" ตามเมาส์ + offset เดิม
@@ -1324,6 +1335,7 @@ function onQuestionMouseMove(e){
 }
 
 
+
 function onQuestionMouseUp(){
   draggingQuestion = false;
 }
@@ -1332,6 +1344,7 @@ function onQuestionMouseUp(){
 if(qSprite){
   qSprite.style.pointerEvents = 'auto';
   qSprite.addEventListener('mousedown', onQuestionMouseDown);
+  qSprite.addEventListener('touchstart', onQuestionMouseDown, { passive:false }); // ✅ มือถือ/ไอแพด
 }
 
 if(qBox){
@@ -1340,6 +1353,10 @@ if(qBox){
 }
 window.addEventListener('mousemove', onQuestionMouseMove);
 window.addEventListener('mouseup', onQuestionMouseUp);
+window.addEventListener('touchmove', onQuestionMouseMove, { passive:false }); // ✅ ลากด้วยนิ้ว
+window.addEventListener('touchend', onQuestionMouseUp);        // ปล่อยนิ้ว = หยุดลาก
+window.addEventListener('touchcancel', onQuestionMouseUp);     // touch ถูกยกเลิก
+
 
 
 /* ตรวจชนหัวกับฟองอากาศ */
@@ -2128,4 +2145,5 @@ document.addEventListener('visibilitychange', ()=>{
 </script>
 </body>
 </html>
+
 
